@@ -1,1 +1,1 @@
-del build\*.* /Q
+del build\*.* /Q /S
