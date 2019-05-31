@@ -1,0 +1,1 @@
+docker run --name example3_server -it --rm -p 8080:8080 -v %cd%/build:/public danjellz/http-server

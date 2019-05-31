@@ -1,0 +1,1 @@
+xcopy %cd%\src\html\* %cd%\build /s /i /y

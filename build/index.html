@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>WASM - WebGL 2.0</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <script src="scripts/jquery.js"></script>
+    <script src="scripts/goldenlayout.min.js"></script>
+
+    <link rel="stylesheet" href="styles/goldenlayout-base.css" />
+    <link rel="stylesheet" href="styles/goldenlayout-dark-theme.css" />
+    <link rel="stylesheet" href="styles/styles.css" />
+</head>
+
+<body>
+    <div id="container">
+        <div id="title-menu">
+            <div>
+                <img src="favicon-32x32.png">
+            </div>
+            <div class="title-menu-item">
+                File
+            </div>
+            <div id="title-menu-title">
+                WebAssmebly WebGL
+            </div>
+        </div>
+        <div id="middle">
+            <div id="left-menu">
+                <div class="left-menu-button">
+                    <img src="assets/assembly_192.png">
+                </div>
+                <div class="left-menu-button">
+                    <img src="assets/part_192.png">
+                </div>
+                <div class="left-menu-button">
+                    <img src="assets/flat_top_192.png">
+                </div>
+                <div class="left-menu-button">
+                    <img src="assets/Airforming.png">
+                </div>
+                <div id="left-menu-title">
+                    <div id="title">&#9664;Bending</div>
+                </div>
+            </div>
+            <div id="left-tools">
+                accordion
+            </div>
+            <div id="workspace">
+                <div id="fps">FPS:</div>
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+        <div id="bottom-bar">
+            bottom-bar
+        </div>
+    </div>
+    <script type='text/javascript'>
+        var Module = {};
+    </script>
+</body>
+
+<script>
+        // $(".left-menu-button").click(function () {
+        //     $(".left-menu-button").addClass("active");
+        //     $(this).removeClass("active");
+        // });
+</script>
+<script src="index.js"></script>
+
+</html>
