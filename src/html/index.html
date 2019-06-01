@@ -9,48 +9,46 @@
 
     <meta charset="utf-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-    <script src="scripts/jquery.js"></script>
-    <script src="scripts/goldenlayout.min.js"></script>
-
-    <link rel="stylesheet" href="styles/goldenlayout-base.css" />
-    <link rel="stylesheet" href="styles/goldenlayout-dark-theme.css" />
     <link rel="stylesheet" href="styles/styles.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 </head>
 
 <body>
     <div id="container">
         <div id="title-menu">
-            <div>
-                <img src="favicon-32x32.png">
+            <div id="title-menu-icon-div">
+                <img id="title-menu-icon" src=" favicon-32x32.png" />
             </div>
-            <div class="title-menu-item">
-                File
-            </div>
-            <div id="title-menu-title">
-                WebAssmebly WebGL
-            </div>
+            <div class="title-menu-item">File</div>
+            <div class="title-menu-item">Edit</div>
+            <div class="title-menu-item">View</div>
+            <div class="title-menu-item">Help</div>
+            <div id="title-menu-title">WebAssmebly WebGL2</div>
         </div>
         <div id="middle">
             <div id="left-menu">
                 <div class="left-menu-button">
-                    <img src="assets/assembly_192.png">
+                    <img src="assets/assembly_192.png" />
                 </div>
                 <div class="left-menu-button">
-                    <img src="assets/part_192.png">
+                    <img src="assets/part_192.png" />
                 </div>
                 <div class="left-menu-button">
-                    <img src="assets/flat_top_192.png">
+                    <img src="assets/flat_top_192.png" />
                 </div>
                 <div class="left-menu-button">
-                    <img src="assets/Airforming.png">
+                    <img src="assets/Airforming.png" />
                 </div>
                 <div id="left-menu-title">
                     <div id="title">&#9664;Bending</div>
                 </div>
             </div>
             <div id="left-tools">
-                accordion
+                <div class="left-tools-item">
+                    <div class="left-tools-item-title">Parts</div>
+                    <div class="left-tools-item-content">Drawer</div>
+                </div>
             </div>
             <div id="workspace">
                 <div id="fps">FPS:</div>
@@ -67,10 +65,51 @@
 </body>
 
 <script>
-        // $(".left-menu-button").click(function () {
-        //     $(".left-menu-button").addClass("active");
-        //     $(this).removeClass("active");
-        // });
+    // $(".left-menu-button").click(function () {
+    //     $(".left-menu-button").addClass("active");
+    //     $(this).removeClass("active");
+    // });
+
+    interact('#left-tools')
+        .resizable({
+            // resize from all edges and corners
+            edges: { left: false, right: true, bottom: false, top: false },
+
+            modifiers: [
+                // keep the edges inside the parent
+                interact.modifiers.restrictEdges({
+                    outer: 'parent',
+                    endOnly: true,
+                }),
+
+                // minimum size
+                interact.modifiers.restrictSize({
+                    min: { width: 100 },
+                }),
+            ],
+
+            inertia: true
+        })
+        .on('resizemove', function (event) {
+            var target = event.target,
+                x = (parseFloat(target.getAttribute('data-x')) || 0),
+                y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+            // update the element's style
+            target.style.width = event.rect.width + 'px';
+            target.style.height = event.rect.height + 'px';
+
+            // translate when resizing from top or left edges
+            x += event.deltaRect.left;
+            y += event.deltaRect.top;
+
+            target.style.webkitTransform = target.style.transform =
+                'translate(' + x + 'px,' + y + 'px)';
+
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+            // target.textContent = Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height);
+        });
 </script>
 <script src="index.js"></script>
 
