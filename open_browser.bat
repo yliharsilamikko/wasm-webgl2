@@ -1,1 +1,1 @@
-start "Chrome" chrome --app=http://localhost:8080
+start "Chrome" chrome --app=http://localhost:8080 --disable-gpu-vsync
