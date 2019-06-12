@@ -11,7 +11,7 @@ public:
     math::vec3 up = {0.0f, 1.0f, 0.0f};
 
     // vertical fov
-    float fov = 1.0f;
+    float fov = 0.6f;
     float near = 0.1f;
     float far = 100.0f;
 
@@ -36,15 +36,21 @@ public:
 
     math::vec3 get_sight()
     {
-        math::vec3 sight = math::sub(focus, position);
-        sight = math::normalize(sight);
-        return sight;
+        return math::normalize(math::sub(focus, position));
     }
 
     math::vec3 get_right()
     {
         auto sight = get_sight();
-        return math::cross(sight, up);
+        return math::normalize(math::cross(sight, up));
+    }
+
+    // fix up direction
+    void make_up_ortho()
+    {
+        auto right = get_right();
+        auto sight = get_sight();
+        up = math::normalize(math::cross(right, sight));
     }
 
     float get_focus_distance()
@@ -75,7 +81,8 @@ public:
         auto transformation = math::mul(translate_back, math::mul(rotation, translate_to_origin));
 
         position = math::transform_point(transformation, position);
-        up = math::transform_direction(transformation, up);
+        up = math::normalize(math::transform_direction(transformation, up));
+        make_up_ortho();
     }
 
     void pan(float x, float y)
@@ -95,20 +102,10 @@ public:
         auto right = get_right();
 
         auto eye_translation = math::add(math::scale(right, delta_right), math::scale(up, delta_up));
-        //float aspect = get_aspect();
-        //float tfov = tan(fov / 2.0f);
-        //float dist = 2.0f * tfov * focus_dist;
-        //float tup = dist * aspect * y / (float)height;
-        //
-        //float tright = dist * x / (float)width;
-        //auto right = get_right();
-        //math::vec3 eye_translation;
-        //eye_translation[0] = tright * right[0] + tup * up[0];
-        //eye_translation[1] = tright * right[1] + tup * up[1];
-        //eye_translation[2] = tright * right[2] + tup * up[2];
 
         position = math::add(position, eye_translation);
         focus = math::add(focus, eye_translation);
+        make_up_ortho();
     }
 
     // zoom into screen position
@@ -145,5 +142,6 @@ public:
 
         position = math::add(position, cam_translation);
         focus = math::add(position, math::scale(sight, new_focus_dist));
+        make_up_ortho();
     }
 };

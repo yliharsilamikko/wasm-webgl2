@@ -290,7 +290,7 @@ public:
         float elapsed_since_start = std::chrono::duration_cast<
                                         std::chrono::duration<float>>(current_time_point - start_time_point_)
                                         .count();
-        float angle = elapsed_since_start * (2 * 3.14f) / 2.0f;
+        float angle = elapsed_since_start * (2 * 3.14f) / 20.0f;
 
         //printf("fps: %f\n", fps);
 
@@ -308,8 +308,8 @@ public:
         //glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         auto model = math::mat4_identity();
-        auto rot_around_z = math::mat4_rot_around_axis({0, 0, 1}, angle);
-        //model = math::mul(rot_around_z, model);
+        auto rot_around = math::mat4_rot_around_axis({0, 1, 0}, angle);
+        model = math::mul(rot_around, model);
         auto view = camera_->get_view_matrix();
         auto projection = camera_->get_projection_matrix();
         model = math::transpose(model);
