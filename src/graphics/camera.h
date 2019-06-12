@@ -6,14 +6,14 @@
 class camera
 {
 public:
-    math::vec3 position = {0.0f, 0.0f, 10.0f};
+    math::vec3 position = {-10.0f, 10.0f, 10.0f};
     math::vec3 focus = {0.0f, 0.0f, 0.0f};
     math::vec3 up = {0.0f, 1.0f, 0.0f};
 
     // vertical fov
-    float fov = 0.5f;
+    float fov = 1.0f;
     float near = 0.1f;
-    float far = 25.0f;
+    float far = 100.0f;
 
     int width = 0;
     int height = 0;
@@ -80,18 +80,32 @@ public:
 
     void pan(float x, float y)
     {
-        float focus_distance = get_focus_distance();
-        float aspect = get_aspect();
-        float tfov = tan(fov / 2.0f);
-        float dist = 2.0f * tfov * focus_distance;
-        float tup = dist * aspect * y / (float)height;
+        float focus_dist = get_focus_distance();
 
-        float tright = dist * x / (float)width;
+        auto aspect = get_aspect();
+        float fov_h = fov / aspect;
+        float fov_v = fov;
+
+        float angle_h = fov_h * x / (float)width;
+        float angle_v = fov_v * y / (float)height;
+
+        float delta_right = tan(angle_h) * focus_dist;
+        float delta_up = tan(angle_v) * focus_dist;
+
         auto right = get_right();
-        math::vec3 eye_translation;
-        eye_translation[0] = tright * right[0] + tup * up[0];
-        eye_translation[1] = tright * right[1] + tup * up[1];
-        eye_translation[2] = tright * right[2] + tup * up[2];
+
+        auto eye_translation = math::add(math::scale(right, delta_right), math::scale(up, delta_up));
+        //float aspect = get_aspect();
+        //float tfov = tan(fov / 2.0f);
+        //float dist = 2.0f * tfov * focus_dist;
+        //float tup = dist * aspect * y / (float)height;
+        //
+        //float tright = dist * x / (float)width;
+        //auto right = get_right();
+        //math::vec3 eye_translation;
+        //eye_translation[0] = tright * right[0] + tup * up[0];
+        //eye_translation[1] = tright * right[1] + tup * up[1];
+        //eye_translation[2] = tright * right[2] + tup * up[2];
 
         position = math::add(position, eye_translation);
         focus = math::add(focus, eye_translation);
@@ -114,6 +128,7 @@ public:
         {
             zoom_factor = 0.8;
         }
+
         float new_focus_dist = zoom_factor * focus_dist;
         auto aspect = get_aspect();
         float fov_h = fov / aspect;
