@@ -1,2 +1,2 @@
-docker run --rm -v %cd%:/code -u emscripten -w /code/build trzeci/emscripten emcc ../src/main.cpp -std=c++14 -s WASM=1 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s USE_WEBGL2=1 -s FULL_ES3=1 -O2 -o index.js
+docker run --rm -v %cd%:/code -u emscripten -w /code/build trzeci/emscripten emcc ../src/main.cpp -std=c++14 -s WASM=1 -s FETCH=1 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s USE_WEBGL2=1 -s FULL_ES3=1 -O2 -o index.js
 copy_static.bat

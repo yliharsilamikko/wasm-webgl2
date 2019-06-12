@@ -12,6 +12,7 @@
 #include <string>
 #include <chrono>
 #include <memory>
+#include <functional>
 
 #include "graphics/camera.h"
 #include "input_handler.h"
@@ -58,7 +59,6 @@ private:
     std::chrono::system_clock::time_point last_time_point_;
     std::chrono::system_clock::time_point start_time_point_;
 
-    vec3 camera_position_;
     std::unique_ptr<camera> camera_;
     std::unique_ptr<input_handler> input_handler_;
 
@@ -128,6 +128,34 @@ public:
             window_name_.c_str());
     }
 
+    void open_model(obj_data obj)
+    {
+        printf("open model\n");
+
+        obj_ = obj;
+
+        printf("Bind vertices\n");
+        glGenBuffers(1, &vertex_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+        glBufferData(GL_ARRAY_BUFFER, obj_.vertices.size() * sizeof(float), &obj_.vertices[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(attribute_locations_["v_pos"]);
+        glVertexAttribPointer(attribute_locations_["v_pos"], 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+
+        printf("Bind normals\n");
+        glGenBuffers(1, &normal_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, normal_buffer);
+        glBufferData(GL_ARRAY_BUFFER, obj_.normals.size() * sizeof(float), &obj_.normals[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(attribute_locations_["v_norm"]);
+        glVertexAttribPointer(attribute_locations_["v_norm"], 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+
+        printf("Bind uvs\n");
+        glGenBuffers(1, &uv_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
+        glBufferData(GL_ARRAY_BUFFER, obj_.uvs.size() * sizeof(float), &obj_.normals[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(attribute_locations_["v_uv"]);
+        glVertexAttribPointer(attribute_locations_["v_uv"], 2, GL_FLOAT, GL_FALSE, 0, (void *)0);
+    }
+
     void init_gl()
     {
 
@@ -158,7 +186,8 @@ public:
         // Cull triangles which normal is not towards the camera
         glEnable(GL_CULL_FACE);
 
-        obj_ = import_test_cube();
+        std::function<void(obj_data)> open_model_func = std::bind(&window::open_model, this, std::placeholders::_1);
+        import_test_asm(open_model_func);
 
         init_shaders();
 
@@ -172,27 +201,6 @@ public:
         attribute_locations_["v_pos"] = glGetAttribLocation(program, "v_pos");
         attribute_locations_["v_norm"] = glGetAttribLocation(program, "v_norm");
         attribute_locations_["v_uv"] = glGetAttribLocation(program, "v_uv");
-
-        printf("Bind vertices\n");
-        glGenBuffers(1, &vertex_buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-        glBufferData(GL_ARRAY_BUFFER, obj_.vertices.size() * sizeof(float), &obj_.vertices[0], GL_STATIC_DRAW);
-        glEnableVertexAttribArray(attribute_locations_["v_pos"]);
-        glVertexAttribPointer(attribute_locations_["v_pos"], 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-
-        printf("Bind normals\n");
-        glGenBuffers(1, &normal_buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, normal_buffer);
-        glBufferData(GL_ARRAY_BUFFER, obj_.normals.size() * sizeof(float), &obj_.normals[0], GL_STATIC_DRAW);
-        glEnableVertexAttribArray(attribute_locations_["v_norm"]);
-        glVertexAttribPointer(attribute_locations_["v_norm"], 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-
-        printf("Bind uvs\n");
-        glGenBuffers(1, &uv_buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
-        glBufferData(GL_ARRAY_BUFFER, obj_.uvs.size() * sizeof(float), &obj_.normals[0], GL_STATIC_DRAW);
-        glEnableVertexAttribArray(attribute_locations_["v_uv"]);
-        glVertexAttribPointer(attribute_locations_["v_uv"], 2, GL_FLOAT, GL_FALSE, 0, (void *)0);
     }
 
     void init_js_callbacks()

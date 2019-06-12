@@ -1,11 +1,13 @@
 #include <vector>
 #include <string>
-#include "linmath.h"
 
 #include <stdio.h>
 #include <cstring>
 #include <sstream>
 #include <iostream>
+#include <functional>
+
+#include <emscripten/fetch.h>
 
 struct obj_data
 {
@@ -14,55 +16,9 @@ struct obj_data
     std::vector<float> uvs;
 };
 
-obj_data import_test_cube()
+obj_data convert(std::string data)
 {
-
     obj_data out;
-
-    std::string obj =
-        "v 1.000000 -1.000000 -1.000000\n"
-        "v 1.000000 -1.000000 1.000000\n"
-        "v -1.000000 -1.000000 1.000000\n"
-        "v -1.000000 -1.000000 -1.000000\n"
-        "v 1.000000 1.000000 -1.000000\n"
-        "v 0.999999 1.000000 1.000001\n"
-        "v -1.000000 1.000000 1.000000\n"
-        "v -1.000000 1.000000 -1.000000\n"
-        "vn 0.000000 0.000000 -1.000000\n"
-        "vn -1.000000 -0.000000 -0.000000\n"
-        "vn -0.000000 -0.000000 1.000000\n"
-        "vn -0.000001 0.000000 1.000000\n"
-        "vn 1.000000 -0.000000 0.000000\n"
-        "vn 1.000000 0.000000 0.000001\n"
-        "vn 0.000000 1.000000 -0.000000\n"
-        "vn -0.000000 -1.000000 0.000000\n"
-        "vt 0.748573 0.750412\n"
-        "vt 0.749279 0.501284\n"
-        "vt 0.999110 0.501077\n"
-        "vt 0.999455 0.750380\n"
-        "vt 0.250471 0.500702\n"
-        "vt 0.249682 0.749677\n"
-        "vt 0.001085 0.750380\n"
-        "vt 0.001517 0.499994\n"
-        "vt 0.499422 0.500239\n"
-        "vt 0.500149 0.750166\n"
-        "vt 0.748355 0.998230\n"
-        "vt 0.500193 0.998728\n"
-        "vt 0.498993 0.250415\n"
-        "vt 0.748953 0.250920\n"
-        "f 5/1/1 1/2/1 4/3/1\n"
-        "f 5/1/1 4/3/1 8/4/1\n"
-        "f 3/5/2 7/6/2 8/7/2\n"
-        "f 3/5/2 8/7/2 4/8/2\n"
-        "f 2/9/3 6/10/3 3/5/3\n"
-        "f 6/10/4 7/6/4 3/5/4\n"
-        "f 1/2/5 5/1/5 2/9/5\n"
-        "f 5/1/6 6/10/6 2/9/6\n"
-        "f 5/1/7 8/11/7 6/10/7\n"
-        "f 8/11/7 7/12/7 6/10/7\n"
-        "f 1/2/8 2/9/8 3/13/8\n"
-        "f 1/2/8 3/13/8 4/14/8\n";
-
     std::vector<unsigned int> vertex_indicies;
     std::vector<unsigned int> normal_indicies;
     std::vector<unsigned int> uv_indicies;
@@ -70,15 +26,15 @@ obj_data import_test_cube()
     std::vector<float> normals;
     std::vector<float> uvs;
 
-    std::istringstream f(obj.c_str());
+    std::istringstream f(data.c_str());
     std::string line;
     while (std::getline(f, line))
     {
-        std::cout << line.c_str() << std::endl;
+        // std::cout << line.c_str() << std::endl;
 
         if (line.find("v ", 0) != std::string::npos)
         {
-            vec3 vec{};
+            math::vec3 vec{};
             std::sscanf(line.c_str(), "%*s %f %f %f", &vec[0], &vec[1], &vec[2]);
             vertices.push_back(vec[0]);
             vertices.push_back(vec[1]);
@@ -86,7 +42,7 @@ obj_data import_test_cube()
         }
         else if (line.find("vt ", 0) != std::string::npos)
         {
-            vec3 vec{};
+            math::vec3 vec{};
             std::sscanf(line.c_str(), "%*s %f %f %f", &vec[0], &vec[1], &vec[2]);
             uvs.push_back(vec[0]);
             uvs.push_back(vec[1]);
@@ -94,7 +50,7 @@ obj_data import_test_cube()
         }
         else if (line.find("vn ", 0) != std::string::npos)
         {
-            vec3 vec{};
+            math::vec3 vec{};
             std::sscanf(line.c_str(), "%*s %f %f %f", &vec[0], &vec[1], &vec[2]);
             normals.push_back(vec[0]);
             normals.push_back(vec[1]);
@@ -143,4 +99,83 @@ obj_data import_test_cube()
     std::cout << "n_vertices: " << out.vertices.size() << std::endl;
 
     return out;
+}
+
+//just for testing
+std::function<void(obj_data)> g_open_model_func;
+
+void downloadSucceeded(emscripten_fetch_t *fetch)
+{
+    printf("Finished downloading %llu bytes from URL %s.\n", fetch->numBytes, fetch->url);
+    // The data is now available at fetch->data[0] through fetch->data[fetch->numBytes-1];
+    std::string data(fetch->data);
+    g_open_model_func(convert(data));
+    emscripten_fetch_close(fetch); // Free data associated with the fetch.
+}
+
+void downloadFailed(emscripten_fetch_t *fetch)
+{
+    printf("Downloading %s failed, HTTP failure status code: %d.\n", fetch->url, fetch->status);
+    emscripten_fetch_close(fetch); // Also free data on failure.
+}
+
+void import_test_asm(std::function<void(obj_data)> open_model_func)
+{
+    g_open_model_func = open_model_func;
+    emscripten_fetch_attr_t attr;
+    emscripten_fetch_attr_init(&attr);
+    strcpy(attr.requestMethod, "GET");
+    attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+    attr.onsuccess = downloadSucceeded;
+    attr.onerror = downloadFailed;
+    emscripten_fetch(&attr, "/assets/assembly.obj");
+}
+
+obj_data import_test_cube()
+{
+    std::string data =
+        "v 1.000000 -1.000000 -1.000000\n"
+        "v 1.000000 -1.000000 1.000000\n"
+        "v -1.000000 -1.000000 1.000000\n"
+        "v -1.000000 -1.000000 -1.000000\n"
+        "v 1.000000 1.000000 -1.000000\n"
+        "v 0.999999 1.000000 1.000001\n"
+        "v -1.000000 1.000000 1.000000\n"
+        "v -1.000000 1.000000 -1.000000\n"
+        "vn 0.000000 0.000000 -1.000000\n"
+        "vn -1.000000 -0.000000 -0.000000\n"
+        "vn -0.000000 -0.000000 1.000000\n"
+        "vn -0.000001 0.000000 1.000000\n"
+        "vn 1.000000 -0.000000 0.000000\n"
+        "vn 1.000000 0.000000 0.000001\n"
+        "vn 0.000000 1.000000 -0.000000\n"
+        "vn -0.000000 -1.000000 0.000000\n"
+        "vt 0.748573 0.750412\n"
+        "vt 0.749279 0.501284\n"
+        "vt 0.999110 0.501077\n"
+        "vt 0.999455 0.750380\n"
+        "vt 0.250471 0.500702\n"
+        "vt 0.249682 0.749677\n"
+        "vt 0.001085 0.750380\n"
+        "vt 0.001517 0.499994\n"
+        "vt 0.499422 0.500239\n"
+        "vt 0.500149 0.750166\n"
+        "vt 0.748355 0.998230\n"
+        "vt 0.500193 0.998728\n"
+        "vt 0.498993 0.250415\n"
+        "vt 0.748953 0.250920\n"
+        "f 5/1/1 1/2/1 4/3/1\n"
+        "f 5/1/1 4/3/1 8/4/1\n"
+        "f 3/5/2 7/6/2 8/7/2\n"
+        "f 3/5/2 8/7/2 4/8/2\n"
+        "f 2/9/3 6/10/3 3/5/3\n"
+        "f 6/10/4 7/6/4 3/5/4\n"
+        "f 1/2/5 5/1/5 2/9/5\n"
+        "f 5/1/6 6/10/6 2/9/6\n"
+        "f 5/1/7 8/11/7 6/10/7\n"
+        "f 8/11/7 7/12/7 6/10/7\n"
+        "f 1/2/8 2/9/8 3/13/8\n"
+        "f 1/2/8 3/13/8 4/14/8\n";
+
+    return convert(data);
 }
