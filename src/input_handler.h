@@ -1,4 +1,4 @@
-#include "linmath.h"
+#include "core_math.h"
 #include <algorithm>
 #include "graphics/camera.h"
 
@@ -7,8 +7,8 @@
 class input_handler
 {
 private:
-    vec2 last_position_ = {0.0f, 0.0f};
-    vec2 down_position_;
+    math::vec3 last_position_{};
+    math::vec3 down_position_{};
 
     int button_state_ = 0;
     int modifier_state_ = 0;
@@ -25,9 +25,9 @@ public:
     {
         float view_x = (float)x - camera_->width / 2.0f;
         float view_y = camera_->height / 2.0f - (float)y;
-        vec2 position{view_x, view_y};
-        vec2_set(last_position_, position);
-        vec2_set(down_position_, position);
+        math::vec3 position{view_x, view_y, 0};
+        last_position_ = position;
+        down_position_ = position;
         return 1; //set capture
     }
 
@@ -35,8 +35,8 @@ public:
     {
         float view_x = (float)x - camera_->width / 2.0f;
         float view_y = camera_->height / 2.0f - (float)y;
-        vec2 position{view_x, view_y};
-        vec2_set(last_position_, position);
+        math::vec3 position{view_x, view_y, 0};
+        last_position_ = position;
         return 0; //set capture
     }
 
@@ -45,27 +45,45 @@ public:
 
         float view_x = (float)x - camera_->width / 2.0f;
         float view_y = camera_->height / 2.0f - (float)y;
-        vec2 position{view_x, view_y};
-        vec2 translation;
-        vec2_sub(translation, position, last_position_);
-        vec2_set(last_position_, position);
-        //printf("input_handler::on_pointer_move %d %d %f %f\n", buttons, key_state, view_x, view_y);
+        math::vec3 position{view_x, view_y, 0};
+        math::vec3 move = math::sub(position, last_position_);
+        last_position_ = position;
 
-        float movement_length = vec2_len(translation);
-        if (movement_length < 0.5f)
+        float move_len = math::magnitude(move);
+        if (move_len < 0.5f)
         {
             return -1;
         }
         if (buttons == 2)
         {
-            vec2_scale(translation, translation, -1.0f);
-            camera_->pan(translation);
+            // moving mouse right moves camera left
+            camera_->pan(-move[0], -move[1]);
         }
         if (buttons == 4)
         {
-            vec2_scale(translation, translation, -1.0f);
-            camera_->rotate_around_focus(translation);
+            float pitch = move[1] / 100.0f;
+            float yaw = move[0] / 100.0f;
+
+            math::vec3 z{0, 0, 1};
+            auto roll_tan = math::normalize(math::cross(position, z));
+            auto roll_len = math::dot(roll_tan, move);
+            auto pos_len = math::magnitude(position);
+            // smooth roll effect near to the center off screen
+            float view_size = (float)std::max(camera_->width, camera_->height);
+            float smooth = math::sigmoid_smooth(pos_len / (view_size / 4.0f));
+            auto roll_ratio = smooth * abs(roll_len / move_len);
+            auto roll = -roll_ratio * atan(roll_len / pos_len);
+
+            pitch = (1.0f - roll_ratio) * pitch;
+            yaw = (1.0f - roll_ratio) * yaw;
+
+            camera_->rotate_around_focus(pitch, yaw, roll);
         }
         return -1;
+    }
+
+    void on_wheel(int delta)
+    {
+        camera_->zoom(last_position_[0], last_position_[1], delta);
     }
 };

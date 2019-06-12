@@ -16,7 +16,7 @@
 #include "graphics/camera.h"
 #include "input_handler.h"
 #include "graphics_gl.h"
-#include "linmath.h"
+#include "core_math.h"
 
 #include "import_obj.h"
 
@@ -206,23 +206,33 @@ public:
             //console.log("window_name: " + window_name + "\n");
 
             canv.onpointerdown = function(e) {
-                var capture = _on_pointer_down(window_id, e.button, 0, e.clientX, e.clientY);
+                var rect = e.target.getBoundingClientRect();
+                var x = e.clientX - rect.left; //x position within the element.
+                var y = e.clientY - rect.top;  //y position within the element.
+                var capture = _on_pointer_down(window_id, e.button, 0, x, y);
                 if(capture == 1){
                     canv.setPointerCapture(e.pointerId);
                 } };
             canv.onpointerup = function(e) {
-                var capture = _on_pointer_up(window_id, e.button, 0, e.clientX, e.clientY);
+                var rect = e.target.getBoundingClientRect();
+                var x = e.clientX - rect.left; //x position within the element.
+                var y = e.clientY - rect.top;  //y position within the element.
+                var capture = _on_pointer_up(window_id, e.button, 0, x, y);
                 if(capture == 0){
                     canv.releasePointerCapture(e.pointerId);
                 } };
             canv.oncontextmenu = function(e){e.preventDefault()};
 
             canv.onpointermove = function(e) {
-               // console.log("onpointermove window_id: " + window_id + "\n");
-                var capture = _on_pointer_move(window_id, e.buttons, 0, e.clientX, e.clientY);
+                var rect = e.target.getBoundingClientRect();
+                var x = e.clientX - rect.left; //x position within the element.
+                var y = e.clientY - rect.top;  //y position within the element.
+                var capture = _on_pointer_move(window_id, e.buttons, 0, x, y);
                 if(capture == 0){
                     canv.releasePointerCapture(e.pointerId);
                 } };
+
+            canv.onwheel = function(e) { _on_wheel(window_id, e.deltaY); };
 
             canv.ondrop = function(e) { dropHandler(event); };
 
@@ -276,10 +286,6 @@ public:
 
         //printf("fps: %f\n", fps);
 
-        float ratio;
-        mat4x4 model;
-        mat4x4 view;
-        mat4x4 projection;
         int w = 0;
         int h = 0;
         emscripten_webgl_get_drawing_buffer_size(context_, &w, &h);
@@ -288,25 +294,27 @@ public:
         camera_->height = h;
 
         //printf("context width = %d, height = %d\n", w, h);
-        ratio = w / (float)h;
+        float ratio = w / (float)h;
         glViewport(0, 0, w, h);
 
         //glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        mat4x4_identity(model);
-        mat4x4_rotate_Z(model, model, angle);
+        auto model = math::mat4_identity();
+        auto rot_around_z = math::mat4_rot_around_axis({0, 0, 1}, angle);
+        //model = math::mul(rot_around_z, model);
+        auto view = camera_->get_view_matrix();
+        auto projection = camera_->get_projection_matrix();
+        model = math::transpose(model);
+        view = math::transpose(view);
+        projection = math::transpose(projection);
 
-        camera_->get_projection_matrix(projection);
-        camera_->get_view_matrix(view);
-
-        vec3 light_pos = {2.0f, 2.0f, 2.0f};
+        math::vec3 light_pos{2.0f, 2.0f, 2.0f};
         glUseProgram(program);
-
-        glUniformMatrix4fv(uniform_locations_["model"], 1, GL_FALSE, (const GLfloat *)model);
-        glUniformMatrix4fv(uniform_locations_["view"], 1, GL_FALSE, (const GLfloat *)view);
-        glUniformMatrix4fv(uniform_locations_["projection"], 1, GL_FALSE, (const GLfloat *)projection);
-        glUniform3fv(uniform_locations_["camera_pos"], 1, (const GLfloat *)camera_->position);
-        glUniform3fv(uniform_locations_["light_pos"], 1, (const GLfloat *)light_pos);
+        glUniformMatrix4fv(uniform_locations_["model"], 1, GL_FALSE, (const GLfloat *)model.data());
+        glUniformMatrix4fv(uniform_locations_["view"], 1, GL_FALSE, (const GLfloat *)view.data());
+        glUniformMatrix4fv(uniform_locations_["projection"], 1, GL_FALSE, (const GLfloat *)projection.data());
+        glUniform3fv(uniform_locations_["camera_pos"], 1, (const GLfloat *)camera_->position.data());
+        glUniform3fv(uniform_locations_["light_pos"], 1, (const GLfloat *)light_pos.data());
         glDrawArrays(GL_TRIANGLES, 0, obj_.vertices.size() / 3);
         emscripten_webgl_commit_frame();
     }
@@ -314,7 +322,8 @@ public:
 
 } // namespace graphics
 
-extern "C" EMSCRIPTEN_KEEPALIVE int on_pointer_down(int window_id, int button, int key_state, int x, int y)
+extern "C" EMSCRIPTEN_KEEPALIVE int
+on_pointer_down(int window_id, int button, int key_state, int x, int y)
 {
     return windows[window_id]->get_input_handler()->on_pointer_down(button, key_state, x, y);
 }
@@ -327,4 +336,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE int on_pointer_up(int window_id, int button, int
 extern "C" EMSCRIPTEN_KEEPALIVE int on_pointer_move(int window_id, int button, int key_state, int x, int y)
 {
     return windows[window_id]->get_input_handler()->on_pointer_move(button, key_state, x, y);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE void on_wheel(int window_id, int delta)
+{
+    windows[window_id]->get_input_handler()->on_wheel(delta);
 }
