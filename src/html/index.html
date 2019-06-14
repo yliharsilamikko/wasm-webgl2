@@ -28,20 +28,20 @@
         </div>
         <div id="middle">
             <div id="left-menu">
-                <div class="left-menu-button">
+                <div class="left-menu-button" onclick="on_asm_click()">
                     <img src="images/assembly_192.png" />
                 </div>
-                <div class="left-menu-button">
+                <div class="left-menu-button" onclick="on_part_click()">
                     <img src="images/part_192.png" />
                 </div>
-                <div class="left-menu-button">
+                <div class="left-menu-button" onclick="on_flat_click()">
                     <img src="images/flat_top_192.png" />
                 </div>
-                <div class="left-menu-button">
+                <div class="left-menu-button" onclick="on_bend_click()">
                     <img src="images/Airforming.png" />
                 </div>
                 <div id="left-menu-title">
-                    <div id="title">Bending</div>
+                    <div id="title">Assembly</div>
                 </div>
             </div>
             <div id="left-tools">
@@ -66,13 +66,18 @@
 </body>
 
 <script>
-    // $(".left-menu-button").click(function () {
-    //     $(".left-menu-button").addClass("active");
-    //     $(this).removeClass("active");
-    // });
-
-
-
+    function on_asm_click() {
+        document.getElementById("title").innerHTML = "Assembly";
+    }
+    function on_part_click() {
+        document.getElementById("title").innerHTML = "Part";
+    }
+    function on_flat_click() {
+        document.getElementById("title").innerHTML = "Flat";
+    }
+    function on_bend_click() {
+        document.getElementById("title").innerHTML = "Bend";
+    }
     interact('#left-tools')
         .resizable({
             // resize from all edges and corners
