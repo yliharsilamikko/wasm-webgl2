@@ -77,12 +77,12 @@ obj_data convert(std::string data)
         }
     }
 
-    std::cout << "n_vertices: " << vertices.size() << std::endl;
-    std::cout << "n_normals: " << normals.size() << std::endl;
-    std::cout << "n_uvs: " << uvs.size() << std::endl;
-    std::cout << "n_v_i: " << vertex_indicies.size() << std::endl;
-    std::cout << "n_n_i: " << normal_indicies.size() << std::endl;
-    std::cout << "n_uv_i: " << uv_indicies.size() << std::endl;
+    //std::cout << "n_vertices: " << vertices.size() << std::endl;
+    //std::cout << "n_normals: " << normals.size() << std::endl;
+    //std::cout << "n_uvs: " << uvs.size() << std::endl;
+    //std::cout << "n_v_i: " << vertex_indicies.size() << std::endl;
+    //std::cout << "n_n_i: " << normal_indicies.size() << std::endl;
+    //std::cout << "n_uv_i: " << uv_indicies.size() << std::endl;
     //process
     for (auto i : vertex_indicies)
     {
@@ -102,9 +102,9 @@ obj_data convert(std::string data)
         out.uvs.push_back(uvs[i * 2 + 1]);
     }
 
-    std::cout << "n_out_vertices: " << out.vertices.size() << std::endl;
-    std::cout << "n_out_normals: " << out.normals.size() << std::endl;
-    std::cout << "n_out_uvs: " << out.uvs.size() << std::endl;
+    //std::cout << "n_out_vertices: " << out.vertices.size() << std::endl;
+    //std::cout << "n_out_normals: " << out.normals.size() << std::endl;
+    //std::cout << "n_out_uvs: " << out.uvs.size() << std::endl;
 
     return out;
 }

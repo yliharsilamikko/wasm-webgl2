@@ -133,50 +133,25 @@ public:
 
     void open_model(obj_data obj)
     {
-        printf("open model\n");
+        //printf("open model\n");
 
         obj_ = obj;
 
-        std::cout << "n_vertices: " << obj_.vertices.size() << std::endl;
-        std::cout << "n_normals: " << obj_.normals.size() << std::endl;
-        std::cout << "n_uvs: " << obj_.uvs.size() << std::endl;
-
-        std::cout << "vertices" << std::endl;
-        for (auto vertex : obj_.vertices)
-        {
-            std::cout << vertex << ", ";
-        }
-        std::cout << std::endl;
-
-        std::cout << "normals" << std::endl;
-        for (auto normal : obj_.normals)
-        {
-            std::cout << normal << ", ";
-        }
-        std::cout << std::endl;
-
-        std::cout << "uvs" << std::endl;
-        for (auto uv : obj_.uvs)
-        {
-            std::cout << uv << ", ";
-        }
-        std::cout << std::endl;
-
-        printf("Bind vertices\n");
+        //printf("Bind vertices\n");
         glGenBuffers(1, &vertex_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
         glBufferData(GL_ARRAY_BUFFER, obj_.vertices.size() * sizeof(float), &obj_.vertices[0], GL_STATIC_DRAW);
         glEnableVertexAttribArray(attribute_locations_["v_pos"]);
         glVertexAttribPointer(attribute_locations_["v_pos"], 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
-        printf("Bind normals\n");
+        //printf("Bind normals\n");
         glGenBuffers(1, &normal_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, normal_buffer);
         glBufferData(GL_ARRAY_BUFFER, obj_.normals.size() * sizeof(float), &obj_.normals[0], GL_STATIC_DRAW);
         glEnableVertexAttribArray(attribute_locations_["v_norm"]);
         glVertexAttribPointer(attribute_locations_["v_norm"], 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
-        printf("Bind uvs\n");
+        //printf("Bind uvs\n");
         glGenBuffers(1, &uv_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
         glBufferData(GL_ARRAY_BUFFER, obj_.uvs.size() * sizeof(float), &obj_.uvs[0], GL_STATIC_DRAW);
@@ -203,7 +178,7 @@ public:
         int w = 0;
         int h = 0;
         emscripten_webgl_get_drawing_buffer_size(context_, &w, &h);
-        printf("context width = %d, height = %d\n", w, h);
+        //printf("context width = %d, height = %d\n", w, h);
 
         printf("OpenGL version supported by this platform : %s\n", glGetString(GL_VERSION));
 
@@ -297,26 +272,26 @@ public:
 
     void init_shaders()
     {
-        printf("init_shaders()\n");
-        printf("Create vertex_shader\n");
+        //printf("init_shaders()\n");
+        //printf("Create vertex_shader\n");
         vertex_shader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
         glCompileShader(vertex_shader);
         check_compiled(vertex_shader);
 
-        printf("Create fragment_shader\n");
+        //printf("Create fragment_shader\n");
         fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
         glCompileShader(fragment_shader);
         check_compiled(fragment_shader);
 
-        printf("Create program\n");
+        //printf("Create program\n");
         program = glCreateProgram();
         glAttachShader(program, vertex_shader);
         glAttachShader(program, fragment_shader);
         glLinkProgram(program);
         check_linked(program);
-        printf("init_shaders() return\n");
+        //printf("init_shaders() return\n");
     }
 
     void draw()
