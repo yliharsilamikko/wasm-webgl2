@@ -1,11 +1,14 @@
 #pragma once
 
 #include <emscripten.h>
-//#define GLFW_INCLUDE_ES3
-//#include <GLFW/glfw3.h>
 #include <GLES3/gl3.h>
-
 #include <stdio.h> //printf
+#include <fstream>
+#include <iterator>
+
+#include "utility.h"
+#include "picopng.h"
+
 namespace graphics
 {
 
@@ -32,6 +35,7 @@ static const char *fragment_shader_text =
     "#version 300 es\n"
     "uniform lowp vec3 camera_pos;\n"
     "uniform lowp vec3 light_pos;\n"
+    "uniform sampler2D tex;\n"
     "in lowp vec3 f_pos;\n"
     "in lowp vec3 f_norm;\n"
     "in lowp vec2 f_uv;\n"
@@ -59,36 +63,18 @@ static const char *fragment_shader_text =
     "   \n"
     "   lowp vec3 result = (ambient + diffuse + specular) * object_color;\n"
     "   color = vec4(result, 1.0);\n"
+    "   //color = texture( tex, f_uv );\n"
     "}\n";
 
-// static const char *fragment_shader_text =
-//     "#version 300 es\n"
-//     "uniform lowp vec3 light_world;\n"
-//     "in lowp vec3 position_world;\n"
-//     "in lowp vec3 normal_camera;\n"
-//     "in lowp vec3 camera_direction_camera;\n"
-//     "in lowp vec3 light_direction_camera;\n"
-//     "in lowp vec2 fragment_uv;\n"
-//     "out lowp vec4 color;\n"
-//     "void main()\n"
-//     "{\n"
-//     "   lowp vec3 light_color = vec3(1.0, 1.0, 1.0);\n"
-//     "   lowp float light_power = 10.0f;\n"
-//     "   lowp vec3 diffuse_color = vec3(0.5,0.5,0.5);\n"
-//     "   lowp vec3 ambient_color = vec3(0.7,0.8,0.7) * diffuse_color;\n"
-//     "   lowp vec3 specular_color = vec3(0.7,0.7,0.5);\n"
-//     "   lowp float distance = length( light_world - position_world );\n"
-//     "   lowp vec3 n = normalize( normal_camera );\n"
-//     "   lowp vec3 l = normalize( light_direction_camera );\n"
-//     "   lowp float cos_theta = clamp( dot( n,l ), 0.0, 1.0 );\n"
-//     "   lowp vec3 e = normalize(camera_direction_camera);\n"
-//     "   lowp vec3 r = reflect(-l,n);\n"
-//     "   lowp float cos_alpha = clamp( dot( e,r ), 0.0, 1.0 );\n"
-//     "   color = \n"
-//     "   	vec4(ambient_color +\n"
-//     "   	diffuse_color * light_color * light_power * cos_theta / (distance*distance) +\n"
-//     "   	specular_color * light_color * light_power * pow(cos_alpha,5.0) / (distance*distance), 1.0);\n"
-//     "}\n";
+void load_texture(std::vector<unsigned char> &image, unsigned long &width, unsigned long &height)
+{
+
+    auto buffer = load_file("assets/textures/Metal_001_roughness.png");
+    int error = decodePNG(image, width, height, buffer.empty() ? 0 : &buffer[0], (unsigned long)buffer.size());
+
+    if (error != 0)
+        std::cout << "error: " << error << std::endl;
+}
 
 static int check_compiled(GLuint shader)
 {

@@ -69,7 +69,7 @@ public:
             auto roll_len = math::dot(roll_tan, move);
             auto pos_len = math::magnitude(position);
             // smooth roll effect near to the center off screen
-            float view_size = (float)std::max(camera_->width, camera_->height);
+            float view_size = (float)std::min(camera_->width, camera_->height);
             float smooth = math::sigmoid_smooth(pos_len / (view_size / 2.0f));
             auto roll_ratio = smooth * abs(roll_len / move_len);
             auto roll = -roll_ratio * atan(roll_len / pos_len);

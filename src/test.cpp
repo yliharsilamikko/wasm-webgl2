@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include "core_math.h"
 
+#include "./external/lodepng.h"
+
 int main(int argc, char **argv)
 {
+
     {
         printf("mat3_identity\n");
         auto m = math::mat3_identity();

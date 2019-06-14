@@ -9,6 +9,8 @@
 
 #include <emscripten/fetch.h>
 
+#include "utility.h"
+
 struct obj_data
 {
     std::vector<float> vertices;
@@ -30,7 +32,7 @@ obj_data convert(std::string data)
     std::string line;
     while (std::getline(f, line))
     {
-        // std::cout << line.c_str() << std::endl;
+        //std::cout << line.c_str() << std::endl;
 
         if (line.find("v ", 0) != std::string::npos)
         {
@@ -43,10 +45,9 @@ obj_data convert(std::string data)
         else if (line.find("vt ", 0) != std::string::npos)
         {
             math::vec3 vec{};
-            std::sscanf(line.c_str(), "%*s %f %f %f", &vec[0], &vec[1], &vec[2]);
+            std::sscanf(line.c_str(), "%*s %f %f", &vec[0], &vec[1]);
             uvs.push_back(vec[0]);
             uvs.push_back(vec[1]);
-            uvs.push_back(vec[2]);
         }
         else if (line.find("vn ", 0) != std::string::npos)
         {
@@ -69,13 +70,19 @@ obj_data convert(std::string data)
             vertex_indicies.push_back(v_i[2] - 1);
             uv_indicies.push_back(uv_i[0] - 1);
             uv_indicies.push_back(uv_i[1] - 1);
-            uv_indicies.push_back(uv_i[2] - 1);
+            uv_indicies.push_back(uv_i[1] - 1);
             normal_indicies.push_back(n_i[0] - 1);
             normal_indicies.push_back(n_i[1] - 1);
             normal_indicies.push_back(n_i[2] - 1);
         }
     }
 
+    std::cout << "n_vertices: " << vertices.size() << std::endl;
+    std::cout << "n_normals: " << normals.size() << std::endl;
+    std::cout << "n_uvs: " << uvs.size() << std::endl;
+    std::cout << "n_v_i: " << vertex_indicies.size() << std::endl;
+    std::cout << "n_n_i: " << normal_indicies.size() << std::endl;
+    std::cout << "n_uv_i: " << uv_indicies.size() << std::endl;
     //process
     for (auto i : vertex_indicies)
     {
@@ -91,44 +98,15 @@ obj_data convert(std::string data)
     }
     for (auto i : uv_indicies)
     {
-        out.uvs.push_back(uv_indicies[i * 3 + 0]);
-        out.uvs.push_back(uv_indicies[i * 3 + 1]);
-        out.uvs.push_back(uv_indicies[i * 3 + 2]);
+        out.uvs.push_back(uvs[i * 2 + 0]);
+        out.uvs.push_back(uvs[i * 2 + 1]);
     }
 
-    std::cout << "n_vertices: " << out.vertices.size() << std::endl;
+    std::cout << "n_out_vertices: " << out.vertices.size() << std::endl;
+    std::cout << "n_out_normals: " << out.normals.size() << std::endl;
+    std::cout << "n_out_uvs: " << out.uvs.size() << std::endl;
 
     return out;
-}
-
-//just for testing
-std::function<void(obj_data)> g_open_model_func;
-
-void downloadSucceeded(emscripten_fetch_t *fetch)
-{
-    printf("Finished downloading %llu bytes from URL %s.\n", fetch->numBytes, fetch->url);
-    // The data is now available at fetch->data[0] through fetch->data[fetch->numBytes-1];
-    std::string data(fetch->data);
-    g_open_model_func(convert(data));
-    emscripten_fetch_close(fetch); // Free data associated with the fetch.
-}
-
-void downloadFailed(emscripten_fetch_t *fetch)
-{
-    printf("Downloading %s failed, HTTP failure status code: %d.\n", fetch->url, fetch->status);
-    emscripten_fetch_close(fetch); // Also free data on failure.
-}
-
-void import_test_asm(std::function<void(obj_data)> open_model_func)
-{
-    g_open_model_func = open_model_func;
-    emscripten_fetch_attr_t attr;
-    emscripten_fetch_attr_init(&attr);
-    strcpy(attr.requestMethod, "GET");
-    attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-    attr.onsuccess = downloadSucceeded;
-    attr.onerror = downloadFailed;
-    emscripten_fetch(&attr, "/assets/assembly.obj");
 }
 
 obj_data import_test_cube()
@@ -178,4 +156,11 @@ obj_data import_test_cube()
         "f 1/2/8 3/13/8 4/14/8\n";
 
     return convert(data);
+}
+
+obj_data import_test_asm()
+{
+    auto data = load_file("assets/assembly.obj");
+
+    return convert(std::string(data.begin(), data.end()));
 }

@@ -53,6 +53,7 @@ private:
     GLuint vertex_buffer, vertex_shader, fragment_shader, program;
     GLuint normal_buffer;
     GLuint uv_buffer;
+    GLuint texture_id;
     std::map<std::string, GLint> uniform_locations_;
     std::map<std::string, GLint> attribute_locations_;
 
@@ -61,6 +62,8 @@ private:
 
     std::unique_ptr<camera> camera_;
     std::unique_ptr<input_handler> input_handler_;
+
+    std::vector<unsigned char> texture_;
 
     obj_data obj_;
 
@@ -134,6 +137,31 @@ public:
 
         obj_ = obj;
 
+        std::cout << "n_vertices: " << obj_.vertices.size() << std::endl;
+        std::cout << "n_normals: " << obj_.normals.size() << std::endl;
+        std::cout << "n_uvs: " << obj_.uvs.size() << std::endl;
+
+        std::cout << "vertices" << std::endl;
+        for (auto vertex : obj_.vertices)
+        {
+            std::cout << vertex << ", ";
+        }
+        std::cout << std::endl;
+
+        std::cout << "normals" << std::endl;
+        for (auto normal : obj_.normals)
+        {
+            std::cout << normal << ", ";
+        }
+        std::cout << std::endl;
+
+        std::cout << "uvs" << std::endl;
+        for (auto uv : obj_.uvs)
+        {
+            std::cout << uv << ", ";
+        }
+        std::cout << std::endl;
+
         printf("Bind vertices\n");
         glGenBuffers(1, &vertex_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
@@ -151,7 +179,7 @@ public:
         printf("Bind uvs\n");
         glGenBuffers(1, &uv_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
-        glBufferData(GL_ARRAY_BUFFER, obj_.uvs.size() * sizeof(float), &obj_.normals[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, obj_.uvs.size() * sizeof(float), &obj_.uvs[0], GL_STATIC_DRAW);
         glEnableVertexAttribArray(attribute_locations_["v_uv"]);
         glVertexAttribPointer(attribute_locations_["v_uv"], 2, GL_FLOAT, GL_FALSE, 0, (void *)0);
     }
@@ -186,10 +214,23 @@ public:
         // Cull triangles which normal is not towards the camera
         glEnable(GL_CULL_FACE);
 
-        std::function<void(obj_data)> open_model_func = std::bind(&window::open_model, this, std::placeholders::_1);
-        import_test_asm(open_model_func);
-
         init_shaders();
+
+        {
+            unsigned long width = 0;
+            unsigned long height = 0;
+
+            load_texture(texture_, width, height);
+            glGenTextures(1, &texture_id);
+            // glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, texture_id);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_.data());
+            glGenerateMipmap(GL_TEXTURE_2D);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        }
 
         uniform_locations_["model"] = glGetUniformLocation(program, "model");
         uniform_locations_["view"] = glGetUniformLocation(program, "view");
@@ -198,9 +239,14 @@ public:
         uniform_locations_["camera_pos"] = glGetUniformLocation(program, "camera_pos");
         uniform_locations_["light_pos"] = glGetUniformLocation(program, "light_pos");
 
+        uniform_locations_["tex"] = glGetUniformLocation(program, "tex");
+
         attribute_locations_["v_pos"] = glGetAttribLocation(program, "v_pos");
         attribute_locations_["v_norm"] = glGetAttribLocation(program, "v_norm");
         attribute_locations_["v_uv"] = glGetAttribLocation(program, "v_uv");
+
+        auto obj = import_test_asm();
+        open_model(obj);
     }
 
     void init_js_callbacks()
@@ -323,6 +369,8 @@ public:
         glUniformMatrix4fv(uniform_locations_["projection"], 1, GL_FALSE, (const GLfloat *)projection.data());
         glUniform3fv(uniform_locations_["camera_pos"], 1, (const GLfloat *)camera_->position.data());
         glUniform3fv(uniform_locations_["light_pos"], 1, (const GLfloat *)light_pos.data());
+
+        // glUniform1ui(uniform_locations_["tex"], texture_id);
         glDrawArrays(GL_TRIANGLES, 0, obj_.vertices.size() / 3);
         emscripten_webgl_commit_frame();
     }
