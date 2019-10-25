@@ -16,10 +16,13 @@
 
 #include "graphics/camera.h"
 #include "input_handler.h"
+#include "socket_controller.h"
 #include "graphics_gl.h"
 #include "core_math.h"
 
 #include "import_obj.h"
+
+#include "part.h"
 
 namespace graphics
 {
@@ -62,10 +65,13 @@ private:
 
     std::unique_ptr<camera> camera_;
     std::unique_ptr<input_handler> input_handler_;
+    std::unique_ptr<socket_controller> socket_controller_;
 
     std::vector<unsigned char> texture_;
 
     obj_data obj_;
+
+    std::unique_ptr<part> part_instance_ = nullptr;
 
     float avg_fps_ = 0.0;
 
@@ -76,9 +82,10 @@ public:
         window_name_ = window_name;
         windows[window_id_] = this;
         window_name_id[window_name] = window_id_;
-
+        part_instance_ = std::make_unique<part>();
         camera_ = std::make_unique<camera>();
-        input_handler_ = std::make_unique<input_handler>(camera_.get());
+        socket_controller_ = std::make_unique<socket_controller>(part_instance_.get());
+        input_handler_ = std::make_unique<input_handler>(camera_.get(), socket_controller_.get());
         printf("window created %d\n", window_id_);
         init_gl();
         init_js_callbacks();
@@ -95,6 +102,11 @@ public:
     input_handler *get_input_handler()
     {
         return input_handler_.get();
+    }
+
+    socket_controller *get_socket_controller()
+    {
+        return socket_controller_.get();
     }
 
     void display_fps(float fps)
@@ -329,8 +341,10 @@ public:
         //glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         auto model = math::mat4_identity();
-        auto rot_around = math::mat4_rot_around_axis({0, 1, 0}, angle);
-        model = math::mul(rot_around, model);
+        //auto rot_around = math::mat4_rot_around_axis({0, 1, 0}, angle);
+        auto translate = math::mat4_translate({part_instance_->position[0], 0.0f, 0.0f});
+
+        model = math::mul(translate, model);
         auto view = camera_->get_view_matrix();
         auto projection = camera_->get_projection_matrix();
         model = math::transpose(model);

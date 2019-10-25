@@ -1,6 +1,6 @@
 #include <functional>
 #include <emscripten.h>
-#include <emscripten/html5.h>
+//#include <emscripten/html5.h>
 
 #include "graphics.h"
 #include <stdio.h>
@@ -16,6 +16,7 @@ int main()
 	printf("Create window\n");
 	graphics::window window{"canvas"};
 
+	int counter = 0;
 	loop = [&] {
 		window.draw();
 	};

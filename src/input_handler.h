@@ -1,7 +1,8 @@
+#pragma once
 #include "core_math.h"
 #include <algorithm>
 #include "graphics/camera.h"
-
+#include "socket_controller.h"
 #include <stdio.h> //printf debug
 
 class input_handler
@@ -14,11 +15,13 @@ private:
     int modifier_state_ = 0;
 
     camera *camera_;
+    socket_controller *controller_;
 
 public:
-    input_handler(camera *cam)
+    input_handler(camera *cam, socket_controller *controller)
     {
         camera_ = cam;
+        controller_ = controller;
     }
 
     int on_pointer_down(int button, int key_state, int x, int y)
@@ -53,6 +56,12 @@ public:
         if (move_len < 0.5f)
         {
             return -1;
+        }
+        if (buttons == 1)
+        {
+            // moving mouse right moves camera left
+            //camera_->pan(-move[0], -move[1]);
+            controller_->send(move[0]);
         }
         if (buttons == 2)
         {

@@ -66,22 +66,39 @@
 </body>
 
 <script>
+    //declare global variable that is visible to the wasm module
+    var ws;
+
+    // ws = new WebSocket("ws://localhost:5000");
+    // ws.onopen = function () {
+    //     // Web Socket is connected, send data using send()
+    //     ws.send("Message to send");
+    // };
+
     function on_asm_click() {
         document.getElementById("title").innerHTML = "Assembly";
     }
+
     function on_part_click() {
         document.getElementById("title").innerHTML = "Part";
     }
+
     function on_flat_click() {
         document.getElementById("title").innerHTML = "Flat";
     }
+
     function on_bend_click() {
         document.getElementById("title").innerHTML = "Bend";
     }
     interact('#left-tools')
         .resizable({
             // resize from all edges and corners
-            edges: { left: false, right: true, bottom: false, top: false },
+            edges: {
+                left: false,
+                right: true,
+                bottom: false,
+                top: false
+            },
 
             modifiers: [
                 // keep the edges inside the parent
@@ -92,7 +109,9 @@
 
                 // minimum size
                 interact.modifiers.restrictSize({
-                    min: { width: 100 },
+                    min: {
+                        width: 100
+                    },
                 }),
             ],
 
