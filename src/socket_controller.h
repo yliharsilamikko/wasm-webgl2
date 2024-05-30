@@ -34,8 +34,13 @@ public:
             ws.onmessage = function(event) {
                 var data = JSON.parse(event.data);
                 _on_message(id, data.x); };
+            
+            ws.onclose = function(e) { console.log("ws.onclose\n"); };
 
+            ws.onerror = function(err) { console.log("ws.onerror\n"); };
+            
             , id_);
+
     }
 
     void on_message(float x)
