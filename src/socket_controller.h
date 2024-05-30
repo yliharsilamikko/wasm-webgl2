@@ -28,7 +28,7 @@ public:
         EM_ASM(
             var id = $0;
 
-            ws = new WebSocket("wss://wasm-webgl-server.herokuapp.com/");
+            ws = new WebSocket("wss://wasm-webgl-server-915aea422050.herokuapp.com/");
             ws.onopen = function() { console.log("ws.onopen\n"); };
 
             ws.onmessage = function(event) {
