@@ -69,7 +69,7 @@ html, body {
     max-width: 59px;
     min-height: 0;
 
-    background-color: rgba(0, 129, 202, 1.0);
+    background-color: #333333;
     color:rgba(204, 204, 204, 1.0);
     font-family: Verdana, Geneva, sans-serif;
     font-size: 14px;
@@ -149,7 +149,7 @@ html, body {
     min-height: 29px;
     max-height: 29px;
     /* height:26px; */
-    background-color: rgba(245, 124, 30, 1.0);
+    background-color: #444444;
     color:rgba(255, 255, 255, 1.0);
     font-family: Verdana, Geneva, sans-serif;
     font-size: 15px;
