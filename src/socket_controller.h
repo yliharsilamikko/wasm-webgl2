@@ -28,16 +28,23 @@ public:
         EM_ASM(
             var id = $0;
 
-            ws = new WebSocket("wss://wasm-webgl-server-915aea422050.herokuapp.com/");
-            ws.onopen = function() { console.log("ws.onopen\n"); };
+            function connect(){
+                ws = new WebSocket("wss://wasm-webgl-server-915aea422050.herokuapp.com/");
+                ws.onopen = function() { console.log("ws.onopen\n"); };
 
-            ws.onmessage = function(event) {
-                var data = JSON.parse(event.data);
-                _on_message(id, data.x); };
-            
-            ws.onclose = function(e) { console.log("ws.onclose\n"); };
+                ws.onmessage = function(event) {
+                    var data = JSON.parse(event.data);
+                    _on_message(id, data.x); };
 
-            ws.onerror = function(err) { console.log("ws.onerror\n"); };
+                ws.onclose = function(e) {
+                    console.log("ws.onclose\n");
+                    setTimeout(function() {connect();}, 100);
+                    };
+
+                ws.onerror = function(err) { console.log("ws.onerror\n"); };
+            }
+
+           connect();
             
             , id_);
 
